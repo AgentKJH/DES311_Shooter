@@ -7,7 +7,9 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-
+#include "Engine/World.h"
+#include "GameFramework/Controller.h"
+#include "Engine/DamageEvents.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ADES311_ShooterCharacter
@@ -15,7 +17,7 @@
 ADES311_ShooterCharacter::ADES311_ShooterCharacter()
 {
 	// Character doesnt have a rifle at start
-	bHasRifle = false;
+	//bHasRifle = false;
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
@@ -27,14 +29,13 @@ ADES311_ShooterCharacter::ADES311_ShooterCharacter()
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
-	Mesh1P->bCastDynamicShadow = false;
-	Mesh1P->CastShadow = false;
+	//Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
+	//Mesh1P->SetOnlyOwnerSee(true);
+	//Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	//Mesh1P->bCastDynamicShadow = false;
+	//Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
-	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-
+	//Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 }
 
 void ADES311_ShooterCharacter::BeginPlay()
@@ -50,7 +51,6 @@ void ADES311_ShooterCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -99,12 +99,59 @@ void ADES311_ShooterCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ADES311_ShooterCharacter::SetHasRifle(bool bNewHasRifle)
+/// <summary>
+/// Fires a line trace from the camera and deals damage to hit actor
+/// </summary>
+void ADES311_ShooterCharacter::PullTrigger() 
 {
-	bHasRifle = bNewHasRifle;
+	FVector cameraLocation = FirstPersonCameraComponent->GetComponentLocation();
+	FVector cameraForwardVector = FirstPersonCameraComponent->GetForwardVector();
+	FVector traceEndLocation = cameraLocation + (cameraForwardVector * maxBulletRange);
+
+
+	FCollisionQueryParams traceParams;
+	traceParams.AddIgnoredActor(this);
+	FHitResult Hit;
+
+	GEngine->AddOnScreenDebugMessage(5, 5, FColor::Red, "PulledTrigger");
+
+
+	bool bSuccess = GetWorld()->LineTraceSingleByChannel(Hit, cameraLocation, traceEndLocation, ECC_EngineTraceChannel2, traceParams);
+
+	if (bSuccess) {
+		// debug traces
+		DrawDebugLine(GetWorld(), cameraLocation, traceEndLocation, FColor::Green, false, 2.0f, 0, 2.0f);
+		DrawDebugSphere(GetWorld(), Hit.Location, 10, 12, FColor::Red, false, 2.0f, 0, 2.0f);
+
+		AActor* hitActor = Hit.GetActor(); // get hit actor pointer ref
+		UPrimitiveComponent* hitComponent = Hit.GetComponent(); // get hit component pointer ref 
+
+		GEngine->AddOnScreenDebugMessage(66, 5, FColor::Red, hitComponent->GetName());
+		//GEngine->AddOnScreenDebugMessage(67, 5, FColor::Orange, Hit.Location.ToString());
+
+		if (hitActor != nullptr) {
+			//GEngine->AddOnScreenDebugMessage(68, 5, FColor::Red, "HitActor not null");
+			FVector shotDirection = (traceEndLocation - cameraLocation).GetSafeNormal(); // get shot direction
+
+			float damage = 100;
+			FPointDamageEvent PointDamage(damage, Hit, shotDirection, nullptr);
+			
+			hitActor->TakeDamage(damage, PointDamage, GetController(), this);
+
+			GEngine->AddOnScreenDebugMessage(69, 5, FColor::Cyan, "Take Damamge Called");
+		}
+
+		FString hitLocation = Hit.Location.ToString();
+		//GEngine->AddOnScreenDebugMessage(70, 5, FColor::Cyan, hitLocation);
+	}
 }
 
-bool ADES311_ShooterCharacter::GetHasRifle()
-{
-	return bHasRifle;
-}
+//void ADES311_ShooterCharacter::SetHasRifle(bool bNewHasRifle)
+//{
+//	bHasRifle = bNewHasRifle;
+//}
+
+//bool ADES311_ShooterCharacter::GetHasRifle()
+//{
+//	return bHasRifle;
+//}
