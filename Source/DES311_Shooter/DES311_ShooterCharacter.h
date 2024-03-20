@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "EnumsLibrary.h"
 #include "DES311_ShooterCharacter.generated.h"
 
 class UInputComponent;
@@ -13,7 +14,6 @@ class USceneComponent;
 class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
-
 
 UCLASS(config=Game)
 class ADES311_ShooterCharacter : public ACharacter
@@ -28,8 +28,8 @@ class ADES311_ShooterCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SMesh, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* GunMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SMesh, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* GunMesh;
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
@@ -42,8 +42,15 @@ class ADES311_ShooterCharacter : public ACharacter
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
-
 	
+	/** Shoot Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ShootAction;
+
+	/** Hammer Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* HammerAction;
+
 public:
 	ADES311_ShooterCharacter();
 
@@ -56,11 +63,36 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	// ----- Shooting Functions -----
+	UFUNCTION(BlueprintCallable)
+	void PullTrigger();
+
+	UFUNCTION(BlueprintCallable)
+	void Shoot();
+
+	UFUNCTION(BlueprintCallable)
+	void Hammer();
+
+	UFUNCTION()
+	void HammerPullAnimFinished();
+
+	UFUNCTION()
+	void ShootAnimFinished();
+
+	// ----- Shooting Variables -----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float maxBulletRange = 2500;
 
-	UFUNCTION(BlueprintCallable)
-	void PullTrigger();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
+	TEnumAsByte<EweaponState> weaponState;
+
+	bool pullHammerFromShoot = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	class UAnimationAsset* hammerAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	class UAnimationAsset* shootAnim;
 
 	/** Bool for AnimBP to switch to another animation set */
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
@@ -80,8 +112,6 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-
 
 protected:
 	// APawn interface

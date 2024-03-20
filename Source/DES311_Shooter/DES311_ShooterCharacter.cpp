@@ -28,6 +28,12 @@ ADES311_ShooterCharacter::ADES311_ShooterCharacter()
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
+	// Create Gun Mesh Component
+	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
+	GunMesh->SetupAttachment(FirstPersonCameraComponent);
+	GunMesh->SetRelativeLocation(FVector(0, 0.f, 0));
+
+
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	//Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
 	//Mesh1P->SetOnlyOwnerSee(true);
@@ -69,6 +75,12 @@ void ADES311_ShooterCharacter::SetupPlayerInputComponent(class UInputComponent* 
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Look);
+
+		// Shoot
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Shoot);
+
+		// Hammer
+		EnhancedInputComponent->BindAction(HammerAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Hammer);
 	}
 }
 
@@ -99,15 +111,58 @@ void ADES311_ShooterCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ADES311_ShooterCharacter::Shoot()
+{
+	GEngine->AddOnScreenDebugMessage(30, 3, FColor::Magenta, "Shoot Input");
+	if (weaponState == EweaponState::Idle) { // if idle call to pull hammer
+		pullHammerFromShoot = true;
+		Hammer();
+	}
+	else if (weaponState == EweaponState::HammerPulled) {
+		PullTrigger();
+	}
+}
+
+void ADES311_ShooterCharacter::Hammer()
+{
+	GEngine->AddOnScreenDebugMessage(31, 3, FColor::Magenta, "Hammer Input");
+
+	weaponState = EweaponState::PullingHammer;
+	//GEngine->AddOnScreenDebugMessage(35, 3, FColor::Magenta, "Hammer Input");
+	//GunMesh->PlayAnimation(hammerAnim, false);
+}
+
+void ADES311_ShooterCharacter::HammerPullAnimFinished()
+{
+	GEngine->AddOnScreenDebugMessage(32, 3, FColor::Magenta, "Hammer Anim Finished");
+
+	if (pullHammerFromShoot) { // pull trigger if triggered by shoot input
+		pullHammerFromShoot = false;
+		PullTrigger();
+	}
+	else {
+		weaponState = EweaponState::HammerPulled;
+	}
+}
+
+void ADES311_ShooterCharacter::ShootAnimFinished()
+{
+	GEngine->AddOnScreenDebugMessage(33, 3, FColor::Magenta, "Shoot Anim Finished");
+	weaponState = EweaponState::Idle;
+}
+
 /// <summary>
 /// Fires a line trace from the camera and deals damage to hit actor
 /// </summary>
 void ADES311_ShooterCharacter::PullTrigger() 
 {
+	// Handle Animation and weapon state
+	weaponState = EweaponState::Shooting;
+	GunMesh->PlayAnimation(shootAnim, false);
+
 	FVector cameraLocation = FirstPersonCameraComponent->GetComponentLocation();
 	FVector cameraForwardVector = FirstPersonCameraComponent->GetForwardVector();
 	FVector traceEndLocation = cameraLocation + (cameraForwardVector * maxBulletRange);
-
 
 	FCollisionQueryParams traceParams;
 	traceParams.AddIgnoredActor(this);
