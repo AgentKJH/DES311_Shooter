@@ -175,8 +175,8 @@ void ADES311_ShooterCharacter::PullTrigger()
 
 	if (bSuccess) {
 		// debug traces
-		DrawDebugLine(GetWorld(), cameraLocation, traceEndLocation, FColor::Green, false, 2.0f, 0, 2.0f);
-		DrawDebugSphere(GetWorld(), Hit.Location, 10, 12, FColor::Red, false, 2.0f, 0, 2.0f);
+		//DrawDebugLine(GetWorld(), cameraLocation, traceEndLocation, FColor::Green, false, 2.0f, 0, 2.0f);
+		//DrawDebugSphere(GetWorld(), Hit.Location, 10, 12, FColor::Red, false, 2.0f, 0, 2.0f);
 
 		AActor* hitActor = Hit.GetActor(); // get hit actor pointer ref
 		UPrimitiveComponent* hitComponent = Hit.GetComponent(); // get hit component pointer ref 
@@ -188,10 +188,10 @@ void ADES311_ShooterCharacter::PullTrigger()
 			//GEngine->AddOnScreenDebugMessage(68, 5, FColor::Red, "HitActor not null");
 			FVector shotDirection = (traceEndLocation - cameraLocation).GetSafeNormal(); // get shot direction
 
-			float damage = 100;
-			FPointDamageEvent PointDamage(damage, Hit, shotDirection, nullptr);
+			FPointDamageEvent PointDamage(baseRevolverDamage, Hit, shotDirection, nullptr);
 			
-			hitActor->TakeDamage(damage, PointDamage, GetController(), this);
+			hitActor->TakeDamage(baseRevolverDamage, PointDamage, GetController(), this);
+
 
 			GEngine->AddOnScreenDebugMessage(69, 5, FColor::Cyan, "Take Damamge Called");
 		}

@@ -83,6 +83,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float maxBulletRange = 2500;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float baseRevolverDamage = 50;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
 	TEnumAsByte<EweaponState> weaponState;
 
@@ -93,6 +96,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	class UAnimationAsset* shootAnim;
+
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	class UNiagaraSystem* hitEffectSystem;*/
 
 	/** Bool for AnimBP to switch to another animation set */
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
