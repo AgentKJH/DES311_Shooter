@@ -31,7 +31,7 @@ ADES311_ShooterCharacter::ADES311_ShooterCharacter()
 	// Create Gun Mesh Component
 	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	GunMesh->SetupAttachment(FirstPersonCameraComponent);
-	GunMesh->SetRelativeLocation(FVector(0, 0.f, 0));
+	GunMesh->SetRelativeLocation(FVector(0, 0, 0));
 
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
@@ -113,7 +113,7 @@ void ADES311_ShooterCharacter::Look(const FInputActionValue& Value)
 
 void ADES311_ShooterCharacter::Shoot()
 {
-	GEngine->AddOnScreenDebugMessage(30, 3, FColor::Magenta, "Shoot Input");
+	//GEngine->AddOnScreenDebugMessage(30, 3, FColor::Magenta, "Shoot Input");
 	if (weaponState == EweaponState::Idle) { // if idle call to pull hammer
 		pullHammerFromShoot = true;
 		Hammer();
@@ -170,7 +170,7 @@ void ADES311_ShooterCharacter::PullTrigger()
 
 	GEngine->AddOnScreenDebugMessage(5, 5, FColor::Red, "PulledTrigger");
 
-
+	
 	bool bSuccess = GetWorld()->LineTraceSingleByChannel(Hit, cameraLocation, traceEndLocation, ECC_EngineTraceChannel2, traceParams);
 
 	if (bSuccess) {
