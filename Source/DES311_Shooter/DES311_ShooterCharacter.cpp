@@ -76,11 +76,11 @@ void ADES311_ShooterCharacter::SetupPlayerInputComponent(class UInputComponent* 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Look);
 
-		// Shoot
-		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Shoot);
+		//// Shoot
+		//EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Shoot);
 
-		// Hammer
-		EnhancedInputComponent->BindAction(HammerAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Hammer);
+		//// Hammer
+		//EnhancedInputComponent->BindAction(HammerAction, ETriggerEvent::Triggered, this, &ADES311_ShooterCharacter::Hammer);
 	}
 }
 
@@ -111,59 +111,21 @@ void ADES311_ShooterCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ADES311_ShooterCharacter::Shoot()
-{
-	//GEngine->AddOnScreenDebugMessage(30, 3, FColor::Magenta, "Shoot Input");
-	if (weaponState == EweaponState::Idle) { // if idle call to pull hammer
-		pullHammerFromShoot = true;
-		Hammer();
-	}
-	else if (weaponState == EweaponState::HammerPulled) {
-		PullTrigger();
-	}
-}
-
-void ADES311_ShooterCharacter::Hammer()
-{
-	GEngine->AddOnScreenDebugMessage(31, 3, FColor::Magenta, "Hammer Input");
-
-	weaponState = EweaponState::PullingHammer;
-	//GEngine->AddOnScreenDebugMessage(35, 3, FColor::Magenta, "Hammer Input");
-	//GunMesh->PlayAnimation(hammerAnim, false);
-}
-
-void ADES311_ShooterCharacter::HammerPullAnimFinished()
-{
-	GEngine->AddOnScreenDebugMessage(32, 3, FColor::Magenta, "Hammer Anim Finished");
-
-	if (pullHammerFromShoot) { // pull trigger if triggered by shoot input
-		pullHammerFromShoot = false;
-		PullTrigger();
-	}
-	else {
-		weaponState = EweaponState::HammerPulled;
-	}
-}
-
-void ADES311_ShooterCharacter::ShootAnimFinished()
-{
-	GEngine->AddOnScreenDebugMessage(33, 3, FColor::Magenta, "Shoot Anim Finished");
-	weaponState = EweaponState::Idle;
-}
-
 /// <summary>
 /// Fires a line trace from the camera and deals damage to hit actor
 /// </summary>
 void ADES311_ShooterCharacter::PullTrigger() 
 {
 	// Handle Animation and weapon state
-	weaponState = EweaponState::Shooting;
-	GunMesh->PlayAnimation(shootAnim, false);
+	//weaponState = EweaponState::Shooting;
+	//GunMesh->PlayAnimation(shootAnim, false);
 
+	// Set up vectors for line trace
 	FVector cameraLocation = FirstPersonCameraComponent->GetComponentLocation();
 	FVector cameraForwardVector = FirstPersonCameraComponent->GetForwardVector();
 	FVector traceEndLocation = cameraLocation + (cameraForwardVector * maxBulletRange);
 
+	// Declare variables for line trace
 	FCollisionQueryParams traceParams;
 	traceParams.AddIgnoredActor(this);
 	FHitResult Hit;
@@ -179,7 +141,7 @@ void ADES311_ShooterCharacter::PullTrigger()
 		//DrawDebugSphere(GetWorld(), Hit.Location, 10, 12, FColor::Red, false, 2.0f, 0, 2.0f);
 
 		AActor* hitActor = Hit.GetActor(); // get hit actor pointer ref
-		UPrimitiveComponent* hitComponent = Hit.GetComponent(); // get hit component pointer ref 
+		UPrimitiveComponent* hitComponent = Hit.GetComponent(); // get hit component pointer ref
 
 		GEngine->AddOnScreenDebugMessage(66, 5, FColor::Red, hitComponent->GetName());
 		//GEngine->AddOnScreenDebugMessage(67, 5, FColor::Orange, Hit.Location.ToString());
@@ -192,7 +154,6 @@ void ADES311_ShooterCharacter::PullTrigger()
 			
 			hitActor->TakeDamage(baseRevolverDamage, PointDamage, GetController(), this);
 
-
 			GEngine->AddOnScreenDebugMessage(69, 5, FColor::Cyan, "Take Damamge Called");
 		}
 
@@ -200,6 +161,93 @@ void ADES311_ShooterCharacter::PullTrigger()
 		//GEngine->AddOnScreenDebugMessage(70, 5, FColor::Cyan, hitLocation);
 	}
 }
+
+/// <summary>
+/// 
+/// </summary>
+void ADES311_ShooterCharacter::QuickFire()
+{
+	FVector cameraLocation = FirstPersonCameraComponent->GetComponentLocation();
+	FVector cameraForwardVector = FirstPersonCameraComponent->GetForwardVector();
+	FVector traceEndLocation = cameraLocation + (cameraForwardVector * maxBulletRange);
+	FVector rndTraceEndLocation = traceEndLocation + FVector(FMath::RandRange(-rndQuickFireRange, rndQuickFireRange), FMath::RandRange(-rndQuickFireRange, rndQuickFireRange), FMath::RandRange(-rndQuickFireRange, rndQuickFireRange)); // random spread
+
+	FCollisionQueryParams traceParams;
+	traceParams.AddIgnoredActor(this);
+	FHitResult Hit;
+
+	GEngine->AddOnScreenDebugMessage(6, 5, FColor::Red, "QuickFire PulledTrigger");	
+
+	bool bHitSuccess = GetWorld()->LineTraceSingleByChannel(Hit, cameraLocation, rndTraceEndLocation, ECC_EngineTraceChannel2, traceParams);
+	DrawDebugLine(GetWorld(), cameraLocation, rndTraceEndLocation, FColor::Green, false, 2.0f, 0, 2.0f);
+
+	if (bHitSuccess) {
+		AActor* hitActor = Hit.GetActor(); // get hit actor pointer ref
+		UPrimitiveComponent* hitComponent = Hit.GetComponent(); // get hit component pointer ref 
+
+		GEngine->AddOnScreenDebugMessage(67, 5, FColor::Red, hitComponent->GetName());
+		//GEngine->AddOnScreenDebugMessage(67, 5, FColor::Orange, Hit.Location.ToString());
+
+		if (hitActor != nullptr) {
+			//GEngine->AddOnScreenDebugMessage(68, 5, FColor::Red, "HitActor not null");
+			FVector shotDirection = (traceEndLocation - cameraLocation).GetSafeNormal(); // get shot direction
+
+			FPointDamageEvent PointDamage(baseRevolverDamage, Hit, shotDirection, nullptr);
+
+			hitActor->TakeDamage(baseRevolverDamage, PointDamage, GetController(), this);
+
+			GEngine->AddOnScreenDebugMessage(69, 5, FColor::Cyan, "QuickFire Take Damamge Called");
+		}
+
+		FString hitLocation = Hit.Location.ToString();
+	}
+}
+
+/// <summary>
+/// Line Trace through multiple targets
+/// </summary>
+void ADES311_ShooterCharacter::PenFire()
+{
+	FVector cameraLocation = FirstPersonCameraComponent->GetComponentLocation();
+	FVector cameraForwardVector = FirstPersonCameraComponent->GetForwardVector();
+	FVector traceEndLocation = cameraLocation + (cameraForwardVector * maxBulletRange);
+
+	FCollisionQueryParams traceParams;
+	traceParams.AddIgnoredActor(this);
+	FHitResult Hit;
+	TArray<FHitResult> outHits;
+	penHitTargets = 0;
+
+	bool bSuccess = GetWorld()->LineTraceMultiByChannel(outHits, cameraLocation, traceEndLocation, ECC_EngineTraceChannel2, traceParams);
+
+	if (bSuccess) {
+		
+		for (auto& hitResult : outHits) { // loop through each actor hit
+			AActor* hitActor = hitResult.GetActor(); // get hit actor pointer ref
+			UPrimitiveComponent* hitComponent = Hit.GetComponent(); // get hit component pointer ref
+			if (penHitTargets <= penHitTargetsMax) {
+				penHitTargets++;
+			}
+			else return;
+
+			if (hitActor != nullptr) 
+			{
+				FVector shotDirection = (traceEndLocation - cameraLocation).GetSafeNormal(); // get shot direction
+
+				FPointDamageEvent PointDamage(baseRevolverDamage, Hit, shotDirection, nullptr);
+
+				hitActor->TakeDamage(baseRevolverDamage, PointDamage, GetController(), this);
+
+				GEngine->AddOnScreenDebugMessage(70, 5, FColor::Cyan, "PenFire Take Damamge Called");
+			}
+		}
+	}
+
+}
+
+
+
+
 
 //void ADES311_ShooterCharacter::SetHasRifle(bool bNewHasRifle)
 //{

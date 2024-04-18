@@ -68,16 +68,10 @@ public:
 	void PullTrigger();
 
 	UFUNCTION(BlueprintCallable)
-	void Shoot();
+	void QuickFire();
 
 	UFUNCTION(BlueprintCallable)
-	void Hammer();
-
-	UFUNCTION()
-	void HammerPullAnimFinished();
-
-	UFUNCTION()
-	void ShootAnimFinished();
+	void PenFire();
 
 	// ----- Shooting Variables -----
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
@@ -85,6 +79,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float baseRevolverDamage = 50;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float rndQuickFireRange = 150;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int penHitTargets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int penHitTargetsMax = 3;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
 	TEnumAsByte<EweaponState> weaponState;
