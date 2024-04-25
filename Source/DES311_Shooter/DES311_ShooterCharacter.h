@@ -28,8 +28,8 @@ class ADES311_ShooterCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SMesh, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* GunMesh;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SMesh, meta = (AllowPrivateAccess = "true"))
+	//USkeletalMeshComponent* GunMesh;
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
@@ -65,10 +65,10 @@ public:
 
 	// ----- Shooting Functions -----
 	UFUNCTION(BlueprintCallable)
-	void PullTrigger();
+	void PullTrigger(FHitResult& OutHitResult);
 
 	UFUNCTION(BlueprintCallable)
-	void QuickFire();
+	void QuickFire(FHitResult& OutHitResult);
 
 	UFUNCTION(BlueprintCallable)
 	void PenFire();
