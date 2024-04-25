@@ -58,7 +58,12 @@ protected:
 	virtual void BeginPlay();
 
 public:
-		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controller")
+	bool isDead = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controller")
+	bool locked = false;
+
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;

@@ -32,4 +32,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Hit")
 	float hitForceMultipler = 100;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Hit")
+	void CustomBehaviour();
 };
